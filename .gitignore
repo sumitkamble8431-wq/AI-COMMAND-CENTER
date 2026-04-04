@@ -1,0 +1,17 @@
+# Python
+backend/venv/
+backend/__pycache__/
+backend/.env
+backend/token.json
+backend/credentials.json
+
+# Node/Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+
