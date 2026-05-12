@@ -5,6 +5,11 @@ from triage_engine import categorize_email
 from pydantic import BaseModel
 
 from pydantic import BaseModel
+from dotenv import load_dotenv
+import os
+
+load_dotenv() # This searches for the .env file and loads the variables
+api_key = os.getenv("GEMINI_API_KEY")
 
 
 app = FastAPI()
