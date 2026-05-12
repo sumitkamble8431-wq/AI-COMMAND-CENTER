@@ -1,0 +1,13 @@
+# Folders we don't need on GitHub
+node_modules/
+.next/
+__pycache__/
+
+# SENSITIVE FILES - DO NOT REMOVE FROM THIS LIST
+backend/token.json
+backend/credentials.json
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
