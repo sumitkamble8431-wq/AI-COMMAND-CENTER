@@ -1,61 +1,87 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
 
-export default function Dashboard() {
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+export default function Home() {
+  const [emails, setEmails] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
-  const router = useRouter();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/signup'); // Send to login if not authenticated
-      } else {
-        setUser(user);
-      }
-    };
-    checkUser();
-  }, [router]);
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
 
-  if (!user) return (
-    <div className="bg-black min-h-screen flex items-center justify-center text-white">
-      <div className="animate-pulse">Verifying Identity...</div>
-    </div>
-  );
+    fetch("/api/gmail")
+      .then((res) => res.json())
+      .then((data) => {
+        setEmails(data);
+      });
+  }, []);
+
+  async function signInWithGoogle() {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: "http://localhost:3000/auth/callback",
+        scopes: "https://www.googleapis.com/auth/gmail.readonly",
+      },
+    });
+  }
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    location.reload();
+  }
 
   return (
-    <div className="min-h-screen bg-black text-white p-8 font-sans">
-      <div className="max-w-2xl mx-auto">
-        <header className="flex justify-between items-center mb-12">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tighter">Command Center</h1>
-            <p className="text-zinc-500 mt-1">Logged in as {user.email}</p>
-          </div>
-          <button 
-            onClick={async () => { await supabase.auth.signOut(); router.push('/signup'); }}
-            className="text-xs border border-white/20 px-4 py-2 rounded-full hover:bg-white/10 transition-all"
-          >
-            Logout
-          </button>
-        </header>
+    <div
+      style={{
+        background: "black",
+        color: "white",
+        minHeight: "100vh",
+        padding: "30px",
+      }}
+    >
+      <h1>AI Command Center</h1>
 
-        <div className="grid gap-6">
-          <div className="bg-gradient-to-br from-zinc-900 to-black border border-white/10 rounded-[2.5rem] p-10 shadow-2xl">
-            <h2 className="text-blue-400 font-bold uppercase tracking-widest text-xs mb-4">Phase 2: Gmail Integration</h2>
-            <p className="text-2xl font-medium leading-tight">
-              Ready to connect your Python backend and start triaging your inbox.
-            </p>
-            <button 
-              className="mt-8 bg-white text-black px-8 py-4 rounded-2xl font-bold hover:bg-zinc-200 transition-all"
-              onClick={() => alert("Connecting to Python Server...")}
+      {user ? (
+        <>
+          <p>Logged in as: {user.email}</p>
+
+          <button onClick={signOut}>Logout</button>
+
+          <h2 style={{ marginTop: "30px" }}>
+            Categorized Emails
+          </h2>
+
+          {emails.map((mail, index) => (
+            <div
+              key={index}
+              style={{
+                border: "1px solid white",
+                padding: "10px",
+                marginTop: "10px",
+              }}
             >
-              Sync AI Inbox
-            </button>
-          </div>
-        </div>
-      </div>
+              <h3>{mail.subject}</h3>
+
+              <p>
+                Category: {mail.category}
+              </p>
+            </div>
+          ))}
+        </>
+      ) : (
+        <button onClick={signInWithGoogle}>
+          Login with Google
+        </button>
+      )}
     </div>
   );
 }

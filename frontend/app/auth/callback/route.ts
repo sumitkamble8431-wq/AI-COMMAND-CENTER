@@ -1,42 +1,19 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/';
+
+  const code = searchParams.get("code");
 
   if (code) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-          set(name: string, value: string, options: CookieOptions) {
-            cookieStore.set({ name, value, ...options });
-          },
-          remove(name: string, options: CookieOptions) {
-            cookieStore.set({ name, value: '', ...options });
-          },
-        },
-      }
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    try {
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (!error) {
-        return NextResponse.redirect(`${origin}${next}`);
-      }
-      console.error('Auth Error:', error.message);
-    } catch (err) {
-      console.error('Unexpected Error:', err);
-    }
+    await supabase.auth.exchangeCodeForSession(code);
   }
 
-  return NextResponse.redirect(`${origin}/signup?error=auth-code-error`);
+  return NextResponse.redirect(origin);
 }

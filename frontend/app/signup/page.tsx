@@ -21,8 +21,8 @@ export default function SignupPage() {
         
         {/* Branding */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-extrabold tracking-tighter">Get Started</h1>
-          <p className="text-zinc-400 text-sm">Your AI Command Center awaits.</p>
+        <h1 className="text-4xl font-extrabold tracking-tight">SmartInbox AI</h1>
+         <p className="text-zinc-400 text-sm">Your AI-powered email organizer.</p>
         </div>
 
         {/* Inputs (Mock/UI only for now) */}
